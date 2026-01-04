@@ -3163,8 +3163,8 @@
       const reportMonthSelect = document.getElementById('reportMonth');
       const currentYear = new Date().getFullYear();
       
-      // 填充年份选项（当前年及往后5年）
-      for (let year = currentYear; year <= currentYear + 5; year++) {
+      // 填充年份选项（2020年到2030年）
+      for (let year = 2020; year <= 2030; year++) {
         const option = document.createElement('option');
         option.value = year;
         option.textContent = year + '年';
