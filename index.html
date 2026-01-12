@@ -3105,6 +3105,41 @@
       if (importJsonBtn) {
         importJsonBtn.addEventListener('click', importAllDataFromJson);
       }
+
+      // 合并第三个DOMContentLoaded的初始化逻辑
+      // 检查是否有汇总数据
+      const storedData = localStorage.getItem('salarySummaryData');
+      if (storedData) {
+        try {
+          const data = JSON.parse(storedData);
+          if (data.length > 0) {
+            paginationState.allData = data;
+            applyPagination();
+          }
+        } catch (e) {
+          console.error('解析汇总数据失败:', e);
+        }
+      }
+      
+      // 初始化图表 - 延迟执行
+      setTimeout(() => {
+        try {
+          initSalaryChart();
+        } catch (e) {
+          console.warn('图表初始化跳过:', e.message);
+        }
+      }, 500);
+      
+      // 为状态筛选下拉框添加事件监听器
+      const statusFilter = document.getElementById('statusFilter');
+      if (statusFilter) {
+        statusFilter.addEventListener('change', searchEmployees);
+      }
+      
+      // 添加Excel文件导入事件监听
+      if (excelFileInput) {
+        excelFileInput.addEventListener('change', handleExcelImport);
+      }
     });
   </script>
 <!-- 生成工资明细表模态框 -->
@@ -4601,33 +4636,6 @@
     
     // 初始化待办事项功能
     initTodoList();
-    
-    // 初始化时如果有数据，应用分页
-    document.addEventListener('DOMContentLoaded', () => {
-      // 检查是否有汇总数据
-      const storedData = localStorage.getItem('salarySummaryData');
-      if (storedData) {
-        const data = JSON.parse(storedData);
-        if (data.length > 0) {
-          paginationState.allData = data;
-          applyPagination();
-        }
-      }
-      
-      // 初始化图表
-      initSalaryChart();
-      
-      // 为状态筛选下拉框添加事件监听器
-      const statusFilter = document.getElementById('statusFilter');
-      if (statusFilter) {
-        statusFilter.addEventListener('change', searchEmployees);
-      }
-      
-      // 添加Excel文件导入事件监听
-      if (excelFileInput) {
-        excelFileInput.addEventListener('change', handleExcelImport);
-      }
-    });
     
     // 处理Excel文件导入
     function handleExcelImport(e) {
