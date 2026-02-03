@@ -135,13 +135,14 @@
             table th:nth-child(7), table td:nth-child(7) { width: 6%; }
             table th:nth-child(8), table td:nth-child(8) { width: 6%; }
             table th:nth-child(9), table td:nth-child(9) { width: 6%; }
-            table th:nth-child(10), table td:nth-child(10) { width: 6%; }
+            table th:nth-child(10), table td:nth-child(10) { width: 6%; } /* 工资总额列 */
             table th:nth-child(11), table td:nth-child(11) { width: 6%; }
             table th:nth-child(12), table td:nth-child(12) { width: 6%; }
             table th:nth-child(13), table td:nth-child(13) { width: 6%; }
             table th:nth-child(14), table td:nth-child(14) { width: 6%; }
-            table th:nth-child(15), table td:nth-child(15) { width: 5%; } /* 减少备注列宽度 */
-            table th:nth-child(16), table td:nth-child(16) { width: 5%; } /* 减少签字列宽度 */
+            table th:nth-child(15), table td:nth-child(15) { width: 6%; }
+            table th:nth-child(16), table td:nth-child(16) { width: 5%; } /* 减少备注列宽度 */
+            table th:nth-child(17), table td:nth-child(17) { width: 5%; } /* 减少签字列宽度 */
             
             /* 标题区域调整 */
             .header {
@@ -325,6 +326,7 @@
             let totalHousingAllowance = 0;
             let totalOtherAllowance = 0;
             let totalYearEndBonus = 0;
+            let totalSubtotal = 0;
             let totalSocialSecurity = 0;
             let totalHousingFund = 0;
             let totalLoanDeduction = 0;
@@ -360,20 +362,36 @@
                     // 年终奖（第9列，索引为8）
                     totalYearEndBonus += parseFloat(cells[8].textContent.replace(/,/g, '')) || 0;
                     
-                    // 代扣个人社保（第10列，索引为9）
-                    totalSocialSecurity += parseFloat(cells[9].textContent.replace(/,/g, '')) || 0;
+                    // 计算小计（从基本工资到年终奖的合计）
+                    const subtotal = (parseFloat(cells[4].textContent.replace(/,/g, '')) || 0) + 
+                                    (parseFloat(cells[5].textContent.replace(/,/g, '')) || 0) + 
+                                    (parseFloat(cells[6].textContent.replace(/,/g, '')) || 0) + 
+                                    (parseFloat(cells[7].textContent.replace(/,/g, '')) || 0) + 
+                                    (parseFloat(cells[8].textContent.replace(/,/g, '')) || 0);
                     
-                    // 代扣公积金（第11列，索引为10）
-                    totalHousingFund += parseFloat(cells[10].textContent.replace(/,/g, '')) || 0;
+                    // 更新小计单元格
+                    if (cells.length > 9) {
+                        cells[9].textContent = formatNumber(subtotal);
+                        cells[9].classList.add('amount');
+                    }
                     
-                    // 扣借款（第12列，索引为11）
-                    totalLoanDeduction += parseFloat(cells[11].textContent.replace(/,/g, '')) || 0;
+                    // 累加小计合计
+                    totalSubtotal += subtotal;
                     
-                    // 代扣个税（第13列，索引为12）
-                    totalTax += parseFloat(cells[12].textContent.replace(/,/g, '')) || 0;
+                    // 代扣个人社保（第11列，索引为10）
+                    totalSocialSecurity += parseFloat(cells[10].textContent.replace(/,/g, '')) || 0;
                     
-                    // 实发工资（第14列，索引为13）
-                    totalNetSalary += parseFloat(cells[13].textContent.replace(/,/g, '')) || 0;
+                    // 代扣公积金（第12列，索引为11）
+                    totalHousingFund += parseFloat(cells[11].textContent.replace(/,/g, '')) || 0;
+                    
+                    // 扣借款（第13列，索引为12）
+                    totalLoanDeduction += parseFloat(cells[12].textContent.replace(/,/g, '')) || 0;
+                    
+                    // 代扣个税（第14列，索引为13）
+                    totalTax += parseFloat(cells[13].textContent.replace(/,/g, '')) || 0;
+                    
+                    // 实发工资（第15列，索引为14）
+                    totalNetSalary += parseFloat(cells[14].textContent.replace(/,/g, '')) || 0;
                 }
             });
             
@@ -398,6 +416,7 @@
                 <td class="amount">${formatNumber(totalHousingAllowance)}</td>
                 <td class="amount">${formatNumber(totalOtherAllowance)}</td>
                 <td class="amount">${formatNumber(totalYearEndBonus)}</td>
+                <td class="amount">${formatNumber(totalSubtotal)}</td>
                 <td class="amount">${formatNumber(totalSocialSecurity)}</td>
                 <td class="amount">${formatNumber(totalHousingFund)}</td>
                 <td class="amount">${formatNumber(totalLoanDeduction)}</td>
@@ -511,8 +530,9 @@
         function exportToExcel() {
             // 获取公司名称和年月信息
             const companyName = document.querySelector('.company-header').textContent;
-            const year = document.querySelector('.period-info div:nth-child(1) div:nth-child(1)').textContent.replace('年份：', '').replace('年', '');
-            const month = document.querySelector('.period-info div:nth-child(1) div:nth-child(2)').textContent.replace('月份：', '').replace('月', '');
+            const yearMonthText = document.querySelector('.period-info div:nth-child(1)').textContent;
+            const year = yearMonthText.match(/(\d+)年/)[1];
+            const month = yearMonthText.match(/(\d+)月/)[1];
             const reportDate = document.querySelector('.period-info div:last-child').textContent.replace('出表日期：', '');
             const isDecember = month === '12';
             
@@ -599,6 +619,7 @@
                     { wch: 12 },  // 房贴
                     { wch: 12 },  // 其它补贴
                     { wch: 12 },  // 年终奖
+                    { wch: 12 },  // 工资总额
                     { wch: 15 },  // 代扣个人社保
                     { wch: 15 },  // 代扣公积金
                     { wch: 10 },  // 扣借款
@@ -609,8 +630,8 @@
                 
                 // 合并表头单元格
                 ws1['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } },
-                    { s: { r: 2, c: 0 }, e: { r: 2, c: 13 } }
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 14 } },
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 14 } }
                 ];
                 
                 // 添加工作表到工作簿
@@ -688,6 +709,7 @@
                     { wch: 12 },  // 房贴
                     { wch: 12 },  // 其它补贴
                     { wch: 12 },  // 年终奖
+                    { wch: 12 },  // 工资总额
                     { wch: 15 },  // 代扣个人社保
                     { wch: 15 },  // 代扣公积金
                     { wch: 10 },  // 扣借款
@@ -698,8 +720,8 @@
                 
                 // 合并表头单元格
                 ws['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: 13 } },
-                    { s: { r: 2, c: 0 }, e: { r: 2, c: 13 } }
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 14 } },
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 14 } }
                 ];
                 
                 // 添加工作表到工作簿
@@ -722,6 +744,7 @@
             let totalHousingAllowance = 0;
             let totalOtherAllowance = 0;
             let totalYearEndBonus = 0;
+            let totalSubtotal = 0;
             let totalSocialSecurity = 0;
             let totalHousingFund = 0;
             let totalLoanDeduction = 0;
@@ -758,32 +781,47 @@
                     // 年终奖（第9列，索引为8）- 这里会是0，因为我们已经将所有年终奖设为0
                     totalYearEndBonus += parseFloat(row[8]) || 0;
                     
-                    // 代扣个人社保（第10列，索引为9）
-                    totalSocialSecurity += parseFloat(row[9]) || 0;
+                    // 计算小计（从基本工资到年终奖的合计）
+                    const subtotal = (parseFloat(row[4]) || 0) + 
+                                    (parseFloat(row[5]) || 0) + 
+                                    (parseFloat(row[6]) || 0) + 
+                                    (parseFloat(row[7]) || 0) + 
+                                    (parseFloat(row[8]) || 0);
                     
-                    // 代扣公积金（第11列，索引为10）
-                    totalHousingFund += parseFloat(row[10]) || 0;
+                    // 更新小计单元格
+                    if (row.length > 9) {
+                        row[9] = subtotal;
+                    }
                     
-                    // 扣借款（第12列，索引为11）
-                    totalLoanDeduction += parseFloat(row[11]) || 0;
+                    // 累加小计合计
+                    totalSubtotal += subtotal;
                     
-                    // 代扣个税（第13列，索引为12）
-                    totalTax += parseFloat(row[12]) || 0;
+                    // 代扣个人社保（第11列，索引为10）
+                    totalSocialSecurity += parseFloat(row[10]) || 0;
                     
-                    // 实发工资（第14列，索引为13）
+                    // 代扣公积金（第12列，索引为11）
+                    totalHousingFund += parseFloat(row[11]) || 0;
+                    
+                    // 扣借款（第13列，索引为12）
+                    totalLoanDeduction += parseFloat(row[12]) || 0;
+                    
+                    // 代扣个税（第14列，索引为13）
+                    totalTax += parseFloat(row[13]) || 0;
+                    
+                    // 实发工资（第15列，索引为14）
                     // 计算公式：实发工资 = 基本工资 + 绩效奖 + 房贴 + 其它补贴 - 代扣个人社保 - 代扣公积金 - 扣借款 - 代扣个税
                     const calculatedNetSalary = (parseFloat(row[4]) || 0) + 
                                              (parseFloat(row[5]) || 0) + 
                                              (parseFloat(row[6]) || 0) + 
                                              (parseFloat(row[7]) || 0) + 
                                              (parseFloat(row[8]) || 0) - 
-                                             Math.abs(parseFloat(row[9]) || 0) - 
                                              Math.abs(parseFloat(row[10]) || 0) - 
                                              Math.abs(parseFloat(row[11]) || 0) - 
-                                             Math.abs(parseFloat(row[12]) || 0);
+                                             Math.abs(parseFloat(row[12]) || 0) - 
+                                             Math.abs(parseFloat(row[13]) || 0);
                     
                     // 更新数据行的实发工资
-                    row[13] = calculatedNetSalary;
+                    row[14] = calculatedNetSalary;
                     
                     // 累加到合计
                     totalNetSalary += calculatedNetSalary;
@@ -814,7 +852,7 @@
             if (totalRowIndex !== -1) {
                 data[totalRowIndex] = [
                     '合计', '', '', totalAttendance, totalBasicSalary, totalPerformanceBonus, 
-                    totalHousingAllowance, totalOtherAllowance, totalYearEndBonus, 
+                    totalHousingAllowance, totalOtherAllowance, totalYearEndBonus, totalSubtotal, 
                     totalSocialSecurity, totalHousingFund, totalLoanDeduction, totalTax, totalNetSalary
                 ];
             }
@@ -827,15 +865,15 @@
                 const totalSum = totalNetSalary + laborTax + fixedValue;
                 
                 if (laborTaxRowIndex !== -1) {
-                    data[laborTaxRowIndex] = ['劳务税', '', '', '', '', '', '', '', '', '', '', '', '', laborTax];
+                    data[laborTaxRowIndex] = ['劳务税', '', '', '', '', '', '', '', '', '', '', '', '', '', laborTax];
                 }
                 
                 if (fixedValueRowIndex !== -1) {
-                    data[fixedValueRowIndex] = ['固定值（人数×100）', '', '', '', '', '', '', '', '', '', '', '', '', fixedValue];
+                    data[fixedValueRowIndex] = ['固定值（人数×100）', '', '', '', '', '', '', '', '', '', '', '', '', '', fixedValue];
                 }
                 
                 if (totalSumRowIndex !== -1) {
-                    data[totalSumRowIndex] = ['总计', '', '', '', '', '', '', '', '', '', '', '', '', totalSum];
+                    data[totalSumRowIndex] = ['总计', '', '', '', '', '', '', '', '', '', '', '', '', '', totalSum];
                 }
             }
         }
@@ -849,6 +887,7 @@
             let totalHousingAllowance = 0;
             let totalOtherAllowance = 0;
             let totalYearEndBonus = 0;
+            let totalSubtotal = 0;
             let totalSocialSecurity = 0;
             let totalHousingFund = 0;
             let totalLoanDeduction = 0;
@@ -885,19 +924,34 @@
                     // 年终奖（第9列，索引为8）- 这里会是0，因为我们已经将所有年终奖设为0
                     totalYearEndBonus += parseFloat(row[8]) || 0;
                     
-                    // 代扣个人社保（第10列，索引为9）
-                    totalSocialSecurity += parseFloat(row[9]) || 0;
+                    // 计算小计（从基本工资到年终奖的合计）
+                    const subtotal = (parseFloat(row[4]) || 0) + 
+                                    (parseFloat(row[5]) || 0) + 
+                                    (parseFloat(row[6]) || 0) + 
+                                    (parseFloat(row[7]) || 0) + 
+                                    (parseFloat(row[8]) || 0);
                     
-                    // 代扣公积金（第11列，索引为10）
-                    totalHousingFund += parseFloat(row[10]) || 0;
+                    // 更新小计单元格
+                    if (row.length > 9) {
+                        row[9] = subtotal;
+                    }
                     
-                    // 扣借款（第12列，索引为11）
-                    totalLoanDeduction += parseFloat(row[11]) || 0;
+                    // 累加小计合计
+                    totalSubtotal += subtotal;
                     
-                    // 代扣个税（第13列，索引为12）
-                    totalTax += parseFloat(row[12]) || 0;
+                    // 代扣个人社保（第11列，索引为10）
+                    totalSocialSecurity += parseFloat(row[10]) || 0;
                     
-                    // 实发工资（第14列，索引为13）
+                    // 代扣公积金（第12列，索引为11）
+                    totalHousingFund += parseFloat(row[11]) || 0;
+                    
+                    // 扣借款（第13列，索引为12）
+                    totalLoanDeduction += parseFloat(row[12]) || 0;
+                    
+                    // 代扣个税（第14列，索引为13）
+                    totalTax += parseFloat(row[13]) || 0;
+                    
+                    // 实发工资（第15列，索引为14）
                     // 由于我们已经将年终奖设为0，这里的实发工资应该重新计算，不包含年终奖
                     // 计算公式：实发工资 = 基本工资 + 绩效奖 + 房贴 + 其它补贴 - 代扣个人社保 - 代扣公积金 - 扣借款 - 代扣个税
                     const calculatedNetSalary = (parseFloat(row[4]) || 0) + 
@@ -905,13 +959,13 @@
                                              (parseFloat(row[6]) || 0) + 
                                              (parseFloat(row[7]) || 0) + 
                                              (parseFloat(row[8]) || 0) - 
-                                             Math.abs(parseFloat(row[9]) || 0) - 
                                              Math.abs(parseFloat(row[10]) || 0) - 
                                              Math.abs(parseFloat(row[11]) || 0) - 
-                                             Math.abs(parseFloat(row[12]) || 0);
+                                             Math.abs(parseFloat(row[12]) || 0) - 
+                                             Math.abs(parseFloat(row[13]) || 0);
                     
                     // 更新数据行的实发工资
-                    row[13] = calculatedNetSalary;
+                    row[14] = calculatedNetSalary;
                     
                     // 累加到合计
                     totalNetSalary += calculatedNetSalary;
@@ -942,7 +996,7 @@
             if (totalRowIndex !== -1) {
                 data[totalRowIndex] = [
                     '合计', '', '', totalAttendance, totalBasicSalary, totalPerformanceBonus, 
-                    totalHousingAllowance, totalOtherAllowance, totalYearEndBonus, 
+                    totalHousingAllowance, totalOtherAllowance, totalYearEndBonus, totalSubtotal, 
                     totalSocialSecurity, totalHousingFund, totalLoanDeduction, totalTax, totalNetSalary
                 ];
             }
@@ -955,15 +1009,15 @@
                 const totalSum = totalNetSalary + laborTax + fixedValue;
                 
                 if (laborTaxRowIndex !== -1) {
-                    data[laborTaxRowIndex] = ['劳务税', '', '', '', '', '', '', '', '', '', '', '', '', laborTax];
+                    data[laborTaxRowIndex] = ['劳务税', '', '', '', '', '', '', '', '', '', '', '', '', '', laborTax];
                 }
                 
                 if (fixedValueRowIndex !== -1) {
-                    data[fixedValueRowIndex] = ['固定值（人数×100）', '', '', '', '', '', '', '', '', '', '', '', '', fixedValue];
+                    data[fixedValueRowIndex] = ['固定值（人数×100）', '', '', '', '', '', '', '', '', '', '', '', '', '', fixedValue];
                 }
                 
                 if (totalSumRowIndex !== -1) {
-                    data[totalSumRowIndex] = ['总计', '', '', '', '', '', '', '', '', '', '', '', '', totalSum];
+                    data[totalSumRowIndex] = ['总计', '', '', '', '', '', '', '', '', '', '', '', '', '', totalSum];
                 }
             }
         }
@@ -992,16 +1046,10 @@
             const currentMonth = now.getMonth() + 1;
             const currentDate = now.getDate();
             
-            // 更新年份
-            const yearElement = document.querySelector('.period-info div:nth-child(1) div:nth-child(1)');
-            if (yearElement) {
-                yearElement.textContent = `年份：${params.year || currentYear}年`;
-            }
-            
-            // 更新月份
-            const monthElement = document.querySelector('.period-info div:nth-child(1) div:nth-child(2)');
-            if (monthElement) {
-                monthElement.textContent = `月份：${params.month || currentMonth}月`;
+            // 更新年/月份
+            const yearMonthElement = document.querySelector('.period-info div:nth-child(1)');
+            if (yearMonthElement) {
+                yearMonthElement.textContent = `年/月份：${params.year || currentYear}年${params.month || currentMonth}月`;
             }
             
             // 更新公司名称
@@ -1026,7 +1074,7 @@
             }
             
             // 更新出表日期为当前日期
-            const dateElement = document.querySelector('.period-info div:nth-child(3)');
+            const dateElement = document.querySelector('.period-info div:nth-child(2)');
             if (dateElement) {
                 dateElement.textContent = `出表日期：${currentYear}年${currentMonth}月${currentDate}日`;
             }
@@ -1121,7 +1169,7 @@
                 // 如果没有找到数据，显示提示信息
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="17" style="text-align: center; color: #666; padding: 20px;">
+                        <td colspan="18" style="text-align: center; color: #666; padding: 20px;">
                             <i class="fa fa-info-circle"></i> 未找到对应月份和公司的工资数据
                             <br>
                             <small>请确保工资管理页面已保存相应数据</small>
@@ -1214,6 +1262,7 @@
                         <td class="amount">${formatNumber(housingAllowance)}</td>
                         <td class="amount">${formatNumber(otherAllowance)}</td>
                         <td class="amount">${formatNumber(yearEndBonus)}</td>
+                        <td class="amount">${formatNumber(basicSalary + performanceBonus + housingAllowance + otherAllowance + yearEndBonus)}</td>
                         <td class="amount">${formatNumber(socialSecurity)}</td>
                         <td class="amount">${formatNumber(housingFund)}</td>
                         <td class="amount">${formatNumber(loanDeduction)}</td>
@@ -1231,7 +1280,7 @@
             if (!hasAddedRows) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="17" style="text-align: center; color: #666; padding: 20px;">
+                        <td colspan="18" style="text-align: center; color: #666; padding: 20px;">
                             <i class="fa fa-info-circle"></i> 找到的数据格式不符合要求，请检查数据结构
                         </td>
                     </tr>
@@ -1371,11 +1420,8 @@
                 </div>
             </div>
             <div class="period-info" style="justify-content: space-between;">
-                <div style="display: flex; gap: 20px;">
-                    <div>年份：2023年</div>
-                    <div>月份：12月</div>
-                </div>
-                <div>出表日期：2023年12月31日</div>
+                <div>年/月份：2026年1月</div>
+                <div>出表日期：2026年2月3日</div>
             </div>
         </div>
         
@@ -1393,6 +1439,7 @@
                         <th>房贴</th>
                         <th>其它补贴</th>
                         <th>年终奖</th>
+                        <th>工资总额</th>
                         <th>代扣个人社保</th>
                         <th>代扣公积金</th>
                         <th>扣借款</th>

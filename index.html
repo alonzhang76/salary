@@ -94,12 +94,34 @@
         <button id="addEmployeeBtn" class="bg-white text-primary px-4 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center">
           <i class="fa fa-plus mr-2"></i>添加新员工
         </button>
-        <button id="employeeImportBtn" class="bg-white text-primary px-4 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center">
-          <i class="fa fa-download mr-2"></i>导入员工
-        </button>
-        <button id="employeeExportBtn" class="bg-white text-primary px-4 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center">
-          <i class="fa fa-upload mr-2"></i>导出员工
-        </button>
+        <!-- 数据管理下拉菜单 -->
+        <div class="relative">
+          <button id="dataManagementBtn" class="bg-white text-primary px-4 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center">
+            <i class="fa fa-cog mr-2"></i>数据管理
+            <i class="fa fa-chevron-down ml-2"></i>
+          </button>
+          <div id="dataManagementDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-50">
+            <div class="py-1">
+              <button id="employeeImportBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center">
+                <i class="fa fa-download mr-2"></i>导入员工
+              </button>
+              <button id="employeeExportBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center">
+                <i class="fa fa-upload mr-2"></i>导出员工
+              </button>
+              <div class="border-t border-gray-100 my-1"></div>
+              <button id="importJsonBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center">
+                <i class="fa fa-upload mr-2"></i>导入JSON
+              </button>
+              <button id="exportJsonBtn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left flex items-center">
+                <i class="fa fa-download mr-2"></i>导出JSON
+              </button>
+              <div class="border-t border-gray-100 my-1"></div>
+              <button id="clearSummaryBtn" class="block px-4 py-2 text-sm text-red-700 hover:bg-red-100 w-full text-left flex items-center">
+                <i class="fa fa-trash mr-2"></i>清空汇总
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -119,7 +141,7 @@
     <!-- 主要内容区 - 左右布局 -->
     <div class="flex flex-col lg:flex-row gap-6">
       <!-- 左侧员工选择区 -->
-      <div class="lg:w-1/4 bg-white rounded-lg shadow p-4">
+      <div class="lg:w-1/5 bg-white rounded-lg shadow p-4">
         <div class="flex justify-between items-center mb-2">
           <h3 class="text-lg font-semibold text-gray-800">员工选择</h3>
           <div class="flex space-x-2">
@@ -200,7 +222,7 @@
       </div>
 
       <!-- 右侧工资表填写区 -->
-      <div class="lg:w-3/4 bg-white rounded-lg shadow p-4">
+      <div class="lg:w-4/5 bg-white rounded-lg shadow p-4">
         <!-- 待办事项模块 -->
         <div class="mb-6 bg-blue-50 rounded-lg p-4">
           <div class="flex justify-between items-center mb-3">
@@ -289,15 +311,8 @@
               <button id="generateSalaryReportBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded transition-colors">
                 <i class="fa fa-file-text-o mr-1"></i>生成工资明细表
               </button>
-              <button id="exportJsonBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors">
-                <i class="fa fa-download mr-1"></i>导出JSON
-              </button>
-              <button id="importJsonBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors">
-                <i class="fa fa-upload mr-1"></i>导入JSON
-              </button>
-              <button id="clearSummaryBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors">
-                <i class="fa fa-trash mr-1"></i>清空汇总
-              </button>
+
+
             </div>
           </div>
           <div class="mb-4 flex justify-between items-center">
@@ -2511,18 +2526,28 @@
         // 清空工资汇总功能
         const clearSummaryBtn = document.getElementById('clearSummaryBtn');
         clearSummaryBtn.addEventListener('click', function() {
-          if (confirm('确定要清空所有工资汇总记录吗？此操作不可恢复！')) {
-            const salarySummaryTableBody = document.getElementById('salarySummaryTableBody');
-            salarySummaryTableBody.innerHTML = `
-              <tr class="text-gray-500 text-center">
-                <td colspan="22" class="px-3 py-8 border border-gray-300">
-                  <i class="fa fa-info-circle mr-2"></i>暂无汇总数据
-                </td>
-              </tr>
-            `;
-            localStorage.removeItem('salarySummaryData');
-            showToast('工资汇总数据已清空');
+          // 要求输入密码
+          const password = prompt('请输入密码以确认清空操作：');
+          
+          // 验证密码
+          if (password === '2601') {
+            if (confirm('确定要清空所有工资汇总记录吗？此操作不可恢复！')) {
+              const salarySummaryTableBody = document.getElementById('salarySummaryTableBody');
+              salarySummaryTableBody.innerHTML = `
+                <tr class="text-gray-500 text-center">
+                  <td colspan="22" class="px-3 py-8 border border-gray-300">
+                    <i class="fa fa-info-circle mr-2"></i>暂无汇总数据
+                  </td>
+                </tr>
+              `;
+              localStorage.removeItem('salarySummaryData');
+              showToast('工资汇总数据已清空');
+            }
+          } else if (password !== null) {
+            // 密码错误
+            showToast('密码错误，操作已取消', true);
           }
+          // 如果用户点击取消，不执行任何操作
         });
       loadSalaryBtn.addEventListener('click', () => {
         const year = parseInt(salaryYear.value);
@@ -3105,6 +3130,23 @@
       if (importJsonBtn) {
         importJsonBtn.addEventListener('click', importAllDataFromJson);
       }
+      
+      // 数据管理下拉菜单逻辑
+      const dataManagementBtn = document.getElementById('dataManagementBtn');
+      const dataManagementDropdown = document.getElementById('dataManagementDropdown');
+      
+      if (dataManagementBtn && dataManagementDropdown) {
+        dataManagementBtn.addEventListener('click', () => {
+          dataManagementDropdown.classList.toggle('hidden');
+        });
+        
+        // 点击其他地方关闭下拉菜单
+        document.addEventListener('click', (e) => {
+          if (!dataManagementBtn.contains(e.target) && !dataManagementDropdown.contains(e.target)) {
+            dataManagementDropdown.classList.add('hidden');
+          }
+        });
+      }
 
       // 合并第三个DOMContentLoaded的初始化逻辑
       // 检查是否有汇总数据
@@ -3553,6 +3595,15 @@
     function initTimeSelectors() {
       const now = new Date();
       const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // 月份从1开始
+      
+      // 计算前一个月的年月
+      let prevYear = currentYear;
+      let prevMonth = currentMonth - 1;
+      if (prevMonth < 1) {
+        prevYear--;
+        prevMonth = 12;
+      }
       
       // 初始化年份选择器
       const yearSelectors = [
@@ -3590,16 +3641,16 @@
         }
       });
       
-      // 设置默认年月为2025年12月
+      // 设置默认年月为当前日期的前一个月
       const startYearSelect = document.getElementById('searchStartYear');
       const startMonthSelect = document.getElementById('searchStartMonth');
       const endYearSelect = document.getElementById('searchEndYear');
       const endMonthSelect = document.getElementById('searchEndMonth');
       
-      if (startYearSelect) startYearSelect.value = '2025';
-      if (startMonthSelect) startMonthSelect.value = '12';
-      if (endYearSelect) endYearSelect.value = '2025';
-      if (endMonthSelect) endMonthSelect.value = '12';
+      if (startYearSelect) startYearSelect.value = prevYear.toString();
+      if (startMonthSelect) startMonthSelect.value = prevMonth.toString();
+      if (endYearSelect) endYearSelect.value = prevYear.toString();
+      if (endMonthSelect) endMonthSelect.value = prevMonth.toString();
     }
     
     // 重置搜索表单
